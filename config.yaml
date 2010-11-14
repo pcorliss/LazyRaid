@@ -1,0 +1,3 @@
+block_size: 5242880 #5Mb in Bytes
+database: /db/lazyraid.sqlite
+
