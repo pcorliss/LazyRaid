@@ -149,6 +149,18 @@ static VALUE encode(VALUE class, VALUE rb_data, VALUE rb_parity) {
     fclose(parityFH[i]);
   }
   
+  printf("Free Memory\n");
+  
+  for (i = 0; i < dataBlocksSize; i++) {
+    free(dataBuf[i]);
+  }
+  free(dataBuf);
+  for (i = 0; i < parityBlocksSize; i++) {
+    free(parBuf[i]);
+  }
+  free(parBuf);
+  
+  
   printf("Return\n");
   return Qnil;
 }
@@ -289,8 +301,8 @@ static VALUE decode(VALUE class, VALUE rb_data, VALUE rb_parity, VALUE rb_erasur
       //Shouldn't be necessary
       bzero(dataBuf[i],sizeof(char)*dataLength[i]);
     }
-    printf("SampleRead:%d:%d\n",i,dataBuf[i][0]);
-    outputData(i,dataBuf[i],dataLength[i]);
+    //printf("SampleRead:%d:%d\n",i,dataBuf[i][0]);
+    //outputData(i,dataBuf[i],dataLength[i]);
 
   }
   
@@ -300,8 +312,8 @@ static VALUE decode(VALUE class, VALUE rb_data, VALUE rb_parity, VALUE rb_erasur
     if(!erasedCheck(i+dataBlocksSize,erasures)) {
       read = fread(parBuf[i],sizeof(char),parityLength[i],parityFH[i]);
     }
-    printf("SampleRead:%d:%d\n",i,parBuf[i][0]);
-    outputData(i+dataBlocksSize,parBuf[i],parityLength[i]);
+    //printf("SampleRead:%d:%d\n",i,parBuf[i][0]);
+    //outputData(i+dataBlocksSize,parBuf[i],parityLength[i]);
   }
   
   printf("Decode\n");
@@ -333,7 +345,7 @@ static VALUE decode(VALUE class, VALUE rb_data, VALUE rb_parity, VALUE rb_erasur
   
   printf("Write to Erased Files\n");
   for (i = 0; i < dataBlocksSize; i++) {
-    outputData(i,dataBuf[i],dataLength[i]);
+    //outputData(i,dataBuf[i],dataLength[i]);
     if(erasedCheck(i,erasures)) {
 
       fwrite(dataBuf[i],sizeof(char),dataLength[i],dataFH[i]);
@@ -341,7 +353,7 @@ static VALUE decode(VALUE class, VALUE rb_data, VALUE rb_parity, VALUE rb_erasur
   }
   
   for (i = 0; i < parityBlocksSize; i++) {
-    outputData(i+dataBlocksSize,parBuf[i],parityLength[i]);
+    //outputData(i+dataBlocksSize,parBuf[i],parityLength[i]);
     if(erasedCheck(i+dataBlocksSize,erasures)) {
       fwrite(parBuf[i],sizeof(char),parityLength[i],parityFH[i]);
     }
@@ -357,6 +369,17 @@ static VALUE decode(VALUE class, VALUE rb_data, VALUE rb_parity, VALUE rb_erasur
   for (i = 0; i < parityBlocksSize; i++) {
     fclose(parityFH[i]);
   }
+
+  printf("Free Memory\n");
+  
+  for (i = 0; i < dataBlocksSize; i++) {
+    free(dataBuf[i]);
+  }
+  free(dataBuf);
+  for (i = 0; i < parityBlocksSize; i++) {
+    free(parBuf[i]);
+  }
+  free(parBuf);
   
   printf("Return\n");
   return Qnil;

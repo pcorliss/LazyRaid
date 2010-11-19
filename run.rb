@@ -201,7 +201,8 @@ require 'pathname'
 APP_ROOT = File.dirname(Pathname.new(__FILE__).realpath)
 DataMapper.setup(:default, 'sqlite://'+APP_ROOT+$config['database'])
 require 'fileutils'
-require APP_ROOT+'/lib/xor/xor'
+#require APP_ROOT+'/lib/xor/xor'
+require APP_ROOT+'/lib/jerasure/parity_calc'
 require APP_ROOT+'/lib/lazyraid'
 DataMapper.finalize
 require  'dm-migrations'

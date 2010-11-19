@@ -1,0 +1,7 @@
+*.o
+*.img
+*.so
+*.out
+rand_bkp
+Jerasure-1.2
+Makefile
