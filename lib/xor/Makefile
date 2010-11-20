@@ -4,11 +4,13 @@ SHELL = /bin/sh
 #### Start of system configuration section. ####
 
 srcdir = .
-topdir = /usr/local/include/ruby-1.9.1
-hdrdir = /usr/local/include/ruby-1.9.1
-arch_hdrdir = /usr/local/include/ruby-1.9.1/$(arch)
+topdir = C:/Ruby192/include/ruby-1.9.1
+hdrdir = C:/Ruby192/include/ruby-1.9.1
+arch_hdrdir = C:/Ruby192/include/ruby-1.9.1/$(arch)
 VPATH = $(srcdir):$(arch_hdrdir)/ruby:$(hdrdir)/ruby
-prefix = $(DESTDIR)/usr/local
+
+DESTDIR = C:
+prefix = $(DESTDIR)/Ruby192
 rubylibprefix = $(libdir)/$(RUBY_BASE_NAME)
 exec_prefix = $(prefix)
 vendorhdrdir = $(rubyhdrdir)/vendor_ruby
@@ -45,44 +47,44 @@ vendorarchdir = $(vendorlibdir)/$(sitearch)
 
 CC = gcc
 CXX = g++
-LIBRUBY = $(LIBRUBY_A)
+LIBRUBY = lib$(RUBY_SO_NAME).dll.a
 LIBRUBY_A = lib$(RUBY_SO_NAME)-static.a
-LIBRUBYARG_SHARED = -Wl,-R -Wl,$(libdir) -L$(libdir) -l$(RUBY_SO_NAME)
-LIBRUBYARG_STATIC = -Wl,-R -Wl,$(libdir) -L$(libdir) -l$(RUBY_SO_NAME)-static
+LIBRUBYARG_SHARED = -l$(RUBY_SO_NAME)
+LIBRUBYARG_STATIC = -l$(RUBY_SO_NAME)-static
 OUTFLAG = -o 
 COUTFLAG = -o 
 
 RUBY_EXTCONF_H = 
 cflags   =  $(optflags) $(debugflags) $(warnflags)
 optflags = -O3
-debugflags = -ggdb
+debugflags = -g
 warnflags = -Wextra -Wno-unused-parameter -Wno-parentheses -Wpointer-arith -Wwrite-strings -Wno-missing-field-initializers -Wno-long-long
-CFLAGS   = -fPIC $(cflags) 
+CFLAGS   =  $(cflags) 
 INCFLAGS = -I. -I$(arch_hdrdir) -I$(hdrdir)/ruby/backward -I$(hdrdir) -I$(srcdir)
 DEFS     = 
 CPPFLAGS =   $(DEFS) $(cppflags)
 CXXFLAGS = $(CFLAGS) $(cxxflags)
-ldflags  = -L.  -rdynamic -Wl,-export-dynamic
-dldflags = 
+ldflags  = -L. 
+dldflags =  -Wl,--enable-auto-image-base,--enable-auto-import $(DEFFILE)
 ARCH_FLAG = 
 DLDFLAGS = $(ldflags) $(dldflags)
-LDSHARED = $(CC) -shared
-LDSHAREDXX = $(CXX) -shared
+LDSHARED = $(CC) -shared $(if $(filter-out -g -g0,$(debugflags)),,-s)
+LDSHAREDXX = $(CXX) -shared $(if $(filter-out -g -g0,$(debugflags)),,-s)
 AR = ar
-EXEEXT = 
+EXEEXT = .exe
 
 RUBY_BASE_NAME = ruby
 RUBY_INSTALL_NAME = ruby
-RUBY_SO_NAME = ruby
-arch = x86_64-linux
-sitearch = $(arch)
+RUBY_SO_NAME = msvcrt-ruby191
+arch = i386-mingw32
+sitearch = i386-msvcrt
 ruby_version = 1.9.1
-ruby = /usr/local/bin/ruby
+ruby = C:/Ruby192/bin/ruby
 RUBY = $(ruby)
 RM = rm -f
 RM_RF = $(RUBY) -run -e rm -- -rf
 RMDIRS = $(RUBY) -run -e rmdir -- -p
-MAKEDIRS = /bin/mkdir -p
+MAKEDIRS = /usr/bin/mkdir -p
 INSTALL = /usr/bin/install -c
 INSTALL_PROG = $(INSTALL) -m 0755
 INSTALL_DATA = $(INSTALL) -m 644
@@ -93,10 +95,10 @@ COPY = cp
 preload = 
 
 libpath = . $(libdir)
-LIBPATH =  -L. -L$(libdir) -Wl,-R$(libdir)
-DEFFILE = 
+LIBPATH =  -L. -L$(libdir)
+DEFFILE = $(TARGET)-$(arch).def
 
-CLEANFILES = mkmf.log
+CLEANFILES = mkmf.log $(DEFFILE)
 DISTCLEANFILES = 
 DISTCLEANDIRS = 
 
@@ -104,7 +106,7 @@ extout =
 extout_prefix = 
 target_prefix = 
 LOCAL_LIBS = 
-LIBS =   -lpthread -lrt -ldl -lcrypt -lm   -lc
+LIBS = $(LIBRUBYARG_SHARED)  -lshell32 -lws2_32  
 SRCS = xor.c
 OBJS = xor.o
 TARGET = xor
@@ -161,7 +163,7 @@ site-install: site-install-so site-install-rb
 site-install-so: install-so
 site-install-rb: install-rb
 
-.SUFFIXES: .c .m .cc .cxx .cpp .C .o
+.SUFFIXES: .c .m .cc .cxx .cpp .o
 
 .cc.o:
 	$(CXX) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG)$@ -c $<
@@ -172,16 +174,16 @@ site-install-rb: install-rb
 .cpp.o:
 	$(CXX) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG)$@ -c $<
 
-.C.o:
-	$(CXX) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG)$@ -c $<
-
 .c.o:
 	$(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$@ -c $<
 
-$(DLLIB): $(OBJS) Makefile
+$(DLLIB): $(DEFFILE) $(OBJS) Makefile
 	@-$(RM) $(@)
 	$(LDSHARED) -o $@ $(OBJS) $(LIBPATH) $(DLDFLAGS) $(LOCAL_LIBS) $(LIBS)
 
 
+
+$(DEFFILE): 
+	$(RUBY) -e "puts 'EXPORTS', 'Init_$(TARGET)'"  > $@
 
 $(OBJS): $(hdrdir)/ruby.h $(hdrdir)/ruby/defines.h $(arch_hdrdir)/ruby/config.h
