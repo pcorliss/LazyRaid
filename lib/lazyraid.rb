@@ -52,21 +52,45 @@ $:.unshift File.dirname(__FILE__)
     end
 
     def freespace
-      begin
-        `df -Pk #{self.mount}`.split("\n")[1].split()[3].to_i * 1024
-      rescue
-        $stderr.print "Mount doesn't seem to be connected. ", $!, "\n"
-        return 0
+      if @free.nil? || (Time.now - @freetime) > $config['cache_disk_space']
+        begin
+          #Linux Specific Space Calc
+          #@free = `df -Pk #{self.mount}`.split("\n")[1].split()[3].to_i * 1024
+          file_system = WIN32OLE.new("Scripting.FileSystemObject")
+          drives = file_system.Drives
+          drives.each do |drive|
+            if drive.isReady && (drive.Path+'/') == self.mount
+              @free = drive.FreeSpace.to_i
+            end
+          end
+          @freetime = Time.now
+        rescue
+          $stderr.print "Mount doesn't seem to be connected. ", $!, "\n"
+          return 0
+        end
       end
+      @free
     end
     
     def totalspace
-      begin
-        `df -Pk #{self.mount}`.split("\n")[1].split()[1].to_i * 1024
-      rescue
-        $stderr.print "Mount doesn't seem to be connected. ", $!, "\n"
-        return 0
+      if @total.nil? || (Time.now - @totaltime) > $config['cache_disk_space']
+        begin
+          #Linux Specific Space Calc
+          #@total = `df -Pk #{self.mount}`.split("\n")[1].split()[1].to_i * 1024
+          file_system = WIN32OLE.new("Scripting.FileSystemObject")
+          drives = file_system.Drives
+          drives.each do |drive|
+            if drive.isReady && (drive.Path+'/') == self.mount
+              @total = drive.TotalSize.to_i
+            end
+          end
+          @totaltime = Time.now
+        rescue
+          $stderr.print "Mount doesn't seem to be connected. ", $!, "\n"
+          return 0
+        end
       end
+      @total
     end
     
     def self.init_or_get(mount,enum = false)
@@ -187,7 +211,15 @@ $:.unshift File.dirname(__FILE__)
     
     #Get list of current mount points on system
     def self.mounts
-      mounts = `mount | grep "^\/"`.split("\n").map { |line| line.split(" ")[2]}
+      #Windows Specific Mount Enumeration
+      file_system = WIN32OLE.new("Scripting.FileSystemObject")
+      drives = file_system.Drives
+      
+      mounts = drives.each.map { |drive| drive.Path+'/' if drive.isReady }
+      mounts = mounts - [nil]
+
+      #Linux Specific
+      #mounts = `mount | grep "^\/"`.split("\n").map { |line| line.split(" ")[2]}
     end
     
     #Check if exists in DB and init the drive

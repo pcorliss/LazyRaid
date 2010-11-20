@@ -35,7 +35,7 @@ class App
       puts "\nFinished at #{DateTime.now}" if @options.verbose
       
     else
-      #puts "Usage Message"
+      puts opts ; exit 0
     end
       
   end
@@ -195,6 +195,7 @@ end
 require 'dm-core'
 require 'dm-types'
 require 'yaml'
+require 'win32ole'
 $config = YAML.load_file("config.yaml")
 #DataMapper::Logger.new($stdout, :debug)
 require 'pathname'
