@@ -52,21 +52,29 @@ $:.unshift File.dirname(__FILE__)
     end
 
     def freespace
-      begin
-        `df -Pk #{self.mount}`.split("\n")[1].split()[3].to_i * 1024
-      rescue
-        $stderr.print "Mount doesn't seem to be connected. ", $!, "\n"
-        return 0
+      if @free.nil? || (Time.now - @freetime) > $config['cache_disk_space']
+        begin
+          @free = `df -Pk #{self.mount}`.split("\n")[1].split()[3].to_i * 1024
+          @freetime = Time.now
+        rescue
+          $stderr.print "Mount doesn't seem to be connected. ", $!, "\n"
+          return 0
+        end
       end
+      @free
     end
     
     def totalspace
-      begin
-        `df -Pk #{self.mount}`.split("\n")[1].split()[1].to_i * 1024
-      rescue
-        $stderr.print "Mount doesn't seem to be connected. ", $!, "\n"
-        return 0
+      if @total.nil? || (Time.now - @totaltime) > $config['cache_disk_space']
+        begin
+          @total = `df -Pk #{self.mount}`.split("\n")[1].split()[1].to_i * 1024
+          @totaltime = Time.now
+        rescue
+          $stderr.print "Mount doesn't seem to be connected. ", $!, "\n"
+          return 0
+        end
       end
+      @total
     end
     
     def self.init_or_get(mount,enum = false)

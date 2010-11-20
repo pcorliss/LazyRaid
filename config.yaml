@@ -1,3 +1,3 @@
 block_size: 5242880 #5Mb in Bytes
 database: /db/lazyraid.sqlite
-
+cache_disk_space: 30 #Number of seconds to cache lookups to disk space
